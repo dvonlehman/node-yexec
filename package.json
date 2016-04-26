@@ -1,6 +1,6 @@
 {
   "name": "yexec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Yet another cmd execution wrapper that works the way I like it",
   "main": "index.js",
   "scripts": {

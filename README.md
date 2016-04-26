@@ -1,7 +1,7 @@
 # yexec
 
-[![Build Status][travis-image]][travis-url]
-[![Test Coverage][coveralls-image]][coveralls-url]
+[![Build Status](https://travis-ci.org/dvonlehman/node-yexec.svg?branch=master)](https://travis-ci.org/dvonlehman/node-yexec)
+[![Coverage Status](https://coveralls.io/repos/github/dvonlehman/node-yexec/badge.svg?branch=master)](https://coveralls.io/github/dvonlehman/node-yexec?branch=master)
 
 Yet another process execution wrapper. Uses `child_process.spawn` to execute an external process and capture `stdout` and `stderr`.
 
@@ -12,6 +12,10 @@ Yet another process execution wrapper. Uses `child_process.spawn` to execute an 
 
 ### Usage
 
+~~~sh
+npm install yexec
+~~~
+
 ~~~js
 var yexec = require('yexec');
 var winston = require('winston');
@@ -20,7 +24,7 @@ var params = {
   executable: 'git',
   args: ['clone', 'https://github.com/nodejs/node.git'],
   logger: winston,
-  logFilter: function(msg, level) {
+  logFilter: function(level, msg) {
     return level !== 'info';
   }
 };
@@ -29,8 +33,3 @@ yexec(params, function(err) {
   winston.error('Oops, git failed with code %s', err.code);
 });
 ~~~
-
-[travis-image]: https://img.shields.io/travis/dvonlehman/yexec.svg?style=flat
-[travis-url]: https://travis-ci.org/dvonlehman/yexec
-[coveralls-image]: https://img.shields.io/coveralls/dvonehman/yexec.svg?style=flat
-[coveralls-url]: https://coveralls.io/r/dvonehman/yexec?branch=master
