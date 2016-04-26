@@ -1,0 +1,23 @@
+{
+  "name": "yexec",
+  "version": "1.0.0",
+  "description": "Yet another cmd execution wrapper that works the way I like it",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  },
+  "author": "David Von Lehman",
+  "repository": "https://github.com/dvonlehman/node-yexec",
+  "license": "ISC",
+  "dependencies": {
+    "lodash.isfunction": "^3.0.8",
+    "lodash.isnumber": "^3.0.3",
+    "lodash.pick": "^4.2.0"
+  },
+  "devDependencies": {
+    "istanbul": "^0.4.3",
+    "mocha": "^2.4.5"
+  }
+}
