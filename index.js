@@ -21,8 +21,8 @@ module.exports = function(params, callback) {
 
   var log = function(level, data) {
     if (!params.logger) return;
-    var msg = data.toString();
-    if (msg.trim().length === 0) return;
+    var msg = data.toString().trim();
+    if (msg.length === 0) return;
     if (isFunction(params.logFilter) && !params.logFilter(level, msg)) return;
     params.logger[level](msg);
   };
