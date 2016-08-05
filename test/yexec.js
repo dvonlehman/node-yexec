@@ -38,7 +38,23 @@ describe('yexec', function() {
     });
   });
 
-  it('filters logging', function(done) {
+  it('filters log events passing in array of patterns', function(done) {
+    var log = new Log();
+    var params = {
+      executable: 'node',
+      args: [path.join(__dirname, './fixtures/success.js')],
+      logger: log,
+      logFilter: [/stdout/]
+    };
+    yexec(params, function(err) {
+      if (err) return done(err);
+      assert.equal(log._info.length, 0);
+      assert.equal(log._warn.length, 1);
+      done();
+    });
+  });
+
+  it('filters logging with function', function(done) {
     var log = new Log();
     var params = {
       executable: 'node',

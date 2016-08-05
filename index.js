@@ -3,12 +3,17 @@ var path = require('path');
 var spawn = require('child_process').spawn;
 var isFunction = require('lodash.isfunction');
 var isNumber = require('lodash.isnumber');
+var isArray = require('lodash.isarray');
+var some = require('lodash.some');
+var debug = require('debug')('yexec');
 
 module.exports = function(params, callback) {
   var options = pick(params, 'cwd', 'env');
   options.stdio = 'pipe';
 
   var executableBaseName = path.basename(params.executable);
+
+  debug('spawning %s %s', params.executable, params.args.join(' '));
 
   var process;
   try {
@@ -18,13 +23,30 @@ module.exports = function(params, callback) {
   }
 
   var processExited;
+  var filter;
+
+  // If the
+  if (isArray(params.logFilter)) {
+    filter = function(level, msg) {
+      return !some(params.logFilter, function(pattern) {
+        return isFunction(pattern.test) && pattern.test(msg);
+      });
+    }
+  } else if (isFunction(params.logFilter)) {
+    filter = params.logFilter;
+  } else {
+    filter = function() {
+      return true;
+    }
+  }
 
   var log = function(level, data) {
     if (!params.logger) return;
     var msg = data.toString().trim();
     if (msg.length === 0) return;
-    if (isFunction(params.logFilter) && !params.logFilter(level, msg)) return;
-    params.logger[level](msg);
+    if (filter(level, msg)) {
+      params.logger[level](msg);
+    }
   };
 
   // Log stdout to the log as info
@@ -49,7 +71,7 @@ module.exports = function(params, callback) {
     if (processExited) return;
     processExited = true;
     if (isNumber(code) && code !== 0) {
-      var error = new Error('Process ' + executableBaseName + ' failed with code');
+      var error = new Error('Process ' + executableBaseName + ' failed with code ' + code);
       error.code = code;
       callback(error);
     } else {
