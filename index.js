@@ -15,17 +15,11 @@ module.exports = function(params, callback) {
 
   debug('spawning %s %s', params.executable, params.args.join(' '));
 
-  var process;
-  try {
-    process = spawn(params.executable, params.args, options);
-  } catch (err) {
-    return callback(err);
-  }
-
   var processExited;
+  var processTimedOut;
   var filter;
 
-  // If the
+  // If logFilter is an array
   if (isArray(params.logFilter)) {
     filter = function(level, msg) {
       return !some(params.logFilter, function(pattern) {
@@ -49,6 +43,13 @@ module.exports = function(params, callback) {
     }
   };
 
+  var process;
+  try {
+    process = spawn(params.executable, params.args, options);
+  } catch (err) {
+    return callback(err);
+  }
+
   // Log stdout to the log as info
   process.stdout.on('data', function(data) {
     log('info', data);
@@ -70,6 +71,13 @@ module.exports = function(params, callback) {
   process.on('exit', function(code) {
     if (processExited) return;
     processExited = true;
+
+    if (processTimedOut === true) {
+      var error = new Error('Process ' + executableBaseName + ' timed out');
+      error.code = 'TIMEOUT';
+      return callback(error);
+    }
+
     if (isNumber(code) && code !== 0) {
       var error = new Error('Process ' + executableBaseName + ' failed with code ' + code);
       error.code = code;
@@ -78,4 +86,15 @@ module.exports = function(params, callback) {
       callback();
     }
   });
+
+  if (isNumber(params.timeout)) {
+    // If the process still has not exited after the timeout period has elapsed,
+    // force kill it.
+    setTimeout(function() {
+      if (!processExited) {
+        processTimedOut = true;
+        process.kill();
+      }
+    }, params.timeout);
+  }
 };

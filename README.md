@@ -9,6 +9,7 @@ Yet another process execution wrapper. Uses `child_process.spawn` to execute an 
 * Supports optional log filter
 * Protects against double callbacks from `error` and `exit` events.
 * Invokes callback with an Error if process exits with non-zero code
+* Specify an optional timeout. If the process has not exited within the interval the process is force killed and a `TIMEOUT` error is passed in the callback.
 
 ### Usage
 
@@ -24,12 +25,14 @@ var params = {
   executable: 'git',
   args: ['clone', 'https://github.com/nodejs/node.git'],
   logger: winston,
+  timeout: 5000, // 5 seconds
   logFilter: function(level, msg) {
     return level !== 'info';
   }
 };
 
 yexec(params, function(err) {
+  // If timeout occurred, err.code will be 'TIMEOUT'
   winston.error('Oops, git failed with code %s', err.code);
 });
 ~~~

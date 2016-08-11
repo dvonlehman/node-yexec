@@ -71,6 +71,20 @@ describe('yexec', function() {
       done();
     });
   });
+
+  it('kills process if not finished within timeout period', function(done) {
+    var log = new Log();
+    var params = {
+      executable: 'node',
+      args: [path.join(__dirname, './fixtures/timeout.js')],
+      logger: log,
+      timeout: 20
+    };
+    yexec(params, function(err) {
+      assert.equal(err.code, 'TIMEOUT');
+      done();
+    });
+  });
 });
 
 function Log() {
