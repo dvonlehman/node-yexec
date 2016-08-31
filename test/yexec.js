@@ -1,5 +1,6 @@
 var assert = require('assert');
 var path = require('path');
+var async = require('async');
 var yexec = require('..');
 
 describe('yexec', function() {
@@ -76,12 +77,36 @@ describe('yexec', function() {
     var log = new Log();
     var params = {
       executable: 'node',
-      args: [path.join(__dirname, './fixtures/timeout.js')],
+      args: [path.join(__dirname, './fixtures/100ms.js')],
       logger: log,
       timeout: 20
     };
     yexec(params, function(err) {
       assert.equal(err.code, 'TIMEOUT');
+      done();
+    });
+  });
+
+  it('kill all running processes', function(done) {
+    var log = new Log();
+    var params = {
+      executable: 'node',
+      args: [path.join(__dirname, './fixtures/100ms.js')],
+      logger: log
+    };
+
+    // Kill all the processes once started
+    setTimeout(function() {
+      yexec.killAll(log);
+    }, 20);
+
+    // Kick off a couple of processes
+    async.times(2, function(n, cb) {
+      yexec(params, cb);
+    }, function(err) {
+      if (err) return done(err);
+      assert.equal(yexec.getRunningPids().length, 0);
+      
       done();
     });
   });

@@ -4,8 +4,11 @@ var spawn = require('child_process').spawn;
 var isFunction = require('lodash.isfunction');
 var isNumber = require('lodash.isnumber');
 var isArray = require('lodash.isarray');
+var without = require('lodash.without');
 var some = require('lodash.some');
 var debug = require('debug')('yexec');
+
+var _runningPids = [];
 
 module.exports = function(params, callback) {
   var options = pick(params, 'cwd', 'env');
@@ -50,6 +53,9 @@ module.exports = function(params, callback) {
     return callback(err);
   }
 
+  // Add the pid to the list of running processes
+  _runningPids.push(process.pid);
+
   // Log stdout to the log as info
   process.stdout.on('data', function(data) {
     log('info', data);
@@ -63,6 +69,7 @@ module.exports = function(params, callback) {
   process.on('error', function(err) {
     log('error', err);
 
+    _runningPids = without(_runningPids, process.pid);
     if (processExited) return;
     processExited = true;
     callback(new Error('Error returned from ' + executableBaseName + ': ' + err.message));
@@ -71,6 +78,9 @@ module.exports = function(params, callback) {
   process.on('exit', function(code) {
     if (processExited) return;
     processExited = true;
+
+    debug('process %s exited with code %s', process.pid, code);
+    _runningPids = without(_runningPids, process.pid);
 
     if (processTimedOut === true) {
       var error = new Error('Process ' + executableBaseName + ' timed out');
@@ -98,3 +108,16 @@ module.exports = function(params, callback) {
     }, params.timeout);
   }
 };
+
+// Kill all running processes
+module.exports.killAll = function() {
+  _runningPids.forEach(function(pid) {
+    debug('Killing pid %s', pid);
+    process.kill(pid, 'SIGTERM');
+  });
+}
+
+// Return the list of running pids
+module.exports.getRunningPids = function() {
+  return _runningPids.slice(0);
+}

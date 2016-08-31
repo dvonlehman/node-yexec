@@ -1,6 +1,6 @@
 {
   "name": "yexec",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Yet another cmd execution wrapper that works the way I like it",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,11 @@
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1",
     "lodash.pick": "^4.2.0",
-    "lodash.some": "^4.5.1"
+    "lodash.some": "^4.5.1",
+    "lodash.without": "^4.4.0"
   },
   "devDependencies": {
+    "async": "^2.0.1",
     "istanbul": "^0.4.3",
     "mocha": "^2.4.5"
   }
