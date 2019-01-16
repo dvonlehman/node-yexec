@@ -1,45 +1,52 @@
 var assert = require('assert');
 var path = require('path');
-var async = require('async');
 var yexec = require('..');
 
-describe('yexec', function() {
-  it('error for missing command', function(done) {
-    yexec({executable: 'missing_cmd', args: []}, function(err) {
-      assert.ok(err);
-      done();
-    });
+describe('yexec', () => {
+  it('error for missing command', async () => {
+    let error;
+    try {
+      await yexec({ executable: 'missing_cmd', args: [] });
+    } catch (err) {
+      error = err;
+    }
+    assert.ok(error);
+    assert.ok(/ENOENT/.test(error.message));
   });
 
-  it('error with non-zero exit code', function(done) {
+  it('error with non-zero exit code', async () => {
     var params = {
       executable: 'node',
       args: [path.join(__dirname, './fixtures/fail.js')]
     };
-    yexec(params, function(err) {
-      assert.equal(err.code, 1);
-      done();
-    });
+
+    let error;
+    try {
+      await yexec(params);
+    } catch (err) {
+      error = err;
+    }
+
+    assert.ok(error);
+    assert.equal(error.code, 1);
   });
 
-  it('captures stdout and stderr', function(done) {
+  it('captures stdout and stderr', async () => {
     var log = new Log();
     var params = {
       executable: 'node',
       args: [path.join(__dirname, './fixtures/success.js')],
       logger: log
     };
-    yexec(params, function(err) {
-      if (err) return done(err);
-      assert.equal(log._info.length, 1);
-      assert.equal('stdout message', log._info[0]);
-      assert.equal(log._warn.length, 1);
-      assert.equal('stderr message', log._warn[0]);
-      done();
-    });
+
+    await yexec(params);
+    assert.equal(log._info.length, 1);
+    assert.equal('stdout message', log._info[0]);
+    assert.equal(log._warn.length, 1);
+    assert.equal('stderr message', log._warn[0]);
   });
 
-  it('filters log events passing in array of patterns', function(done) {
+  it('filters log events passing in array of patterns', async () => {
     var log = new Log();
     var params = {
       executable: 'node',
@@ -47,15 +54,13 @@ describe('yexec', function() {
       logger: log,
       logFilter: [/stdout/]
     };
-    yexec(params, function(err) {
-      if (err) return done(err);
-      assert.equal(log._info.length, 0);
-      assert.equal(log._warn.length, 1);
-      done();
-    });
+
+    await yexec(params);
+    assert.equal(log._info.length, 1);
+    assert.equal(log._warn.length, 0);
   });
 
-  it('filters logging with function', function(done) {
+  it('filters logging with function', async () => {
     var log = new Log();
     var params = {
       executable: 'node',
@@ -65,15 +70,13 @@ describe('yexec', function() {
         return level !== 'info';
       }
     };
-    yexec(params, function(err) {
-      if (err) return done(err);
-      assert.equal(log._info.length, 0);
-      assert.equal(log._warn.length, 1);
-      done();
-    });
+    await yexec(params);
+
+    assert.equal(log._info.length, 0);
+    assert.equal(log._warn.length, 1);
   });
 
-  it('kills process if not finished within timeout period', function(done) {
+  it('kills process if not finished within timeout period', async () => {
     var log = new Log();
     var params = {
       executable: 'node',
@@ -81,13 +84,19 @@ describe('yexec', function() {
       logger: log,
       timeout: 20
     };
-    yexec(params, function(err) {
-      assert.equal(err.code, 'TIMEOUT');
-      done();
-    });
+
+    let error;
+    try {
+      await yexec(params);
+    } catch (err) {
+      error = err;
+    }
+
+    assert.ok(error);
+    assert.equal(error.code, 'TIMEOUT');
   });
 
-  it('kill all running processes', function(done) {
+  it('kill all running processes', async () => {
     var log = new Log();
     var params = {
       executable: 'node',
@@ -100,15 +109,13 @@ describe('yexec', function() {
       yexec.killAll(log);
     }, 20);
 
-    // Kick off a couple of processes
-    async.times(2, function(n, cb) {
-      yexec(params, cb);
-    }, function(err) {
-      if (err) return done(err);
-      assert.equal(yexec.getRunningPids().length, 0);
-      
-      done();
-    });
+    Promise.all([yexec(params), yexec(params)]);
+
+    assert.equal(yexec.getRunningPids().length, 2);
+    yexec.killAll(log);
+
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(yexec.getRunningPids().length, 0);
   });
 });
 
