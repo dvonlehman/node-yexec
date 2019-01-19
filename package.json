@@ -1,6 +1,6 @@
 {
   "name": "yexec",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Yet another cmd execution wrapper that works the way I like it",
   "main": "index.js",
   "scripts": {
@@ -11,15 +11,13 @@
   "author": "David Von Lehman",
   "repository": "https://github.com/dvonlehman/node-yexec",
   "license": "ISC",
+  "types": "./index.d.ts",
   "dependencies": {
     "debug": "^4.1.1",
-    "lodash.isarray": "^4.0.0",
     "lodash.isfunction": "^3.0.9",
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1",
-    "lodash.pick": "^4.4.0",
-    "lodash.some": "^4.6.0",
-    "lodash.without": "^4.4.0"
+    "lodash.pick": "^4.4.0"
   },
   "devDependencies": {
     "async": "^2.6.1",

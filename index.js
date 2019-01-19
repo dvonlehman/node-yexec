@@ -3,9 +3,6 @@ var path = require('path');
 var spawn = require('child_process').spawn;
 var isFunction = require('lodash.isfunction');
 var isNumber = require('lodash.isnumber');
-var isArray = require('lodash.isarray');
-var without = require('lodash.without');
-var some = require('lodash.some');
 var debug = require('debug')('yexec');
 
 var _runningPids = [];
@@ -24,9 +21,9 @@ module.exports = function(params) {
     var filter;
 
     // If logFilter is an array
-    if (isArray(params.logFilter)) {
+    if (Array.isArray(params.logFilter)) {
       filter = function(level, msg) {
-        return some(params.logFilter, function(pattern) {
+        return params.logFilter.some(pattern => {
           return isFunction(pattern.test) && pattern.test(msg);
         });
       };
@@ -70,7 +67,7 @@ module.exports = function(params) {
     process.on('error', function(err) {
       log('error', err);
 
-      _runningPids = without(_runningPids, process.pid);
+      _runningPids = _runningPids.filter(pid => pid !== process.pid);
       if (processExited) return;
       processExited = true;
       return reject(
@@ -85,7 +82,7 @@ module.exports = function(params) {
       processExited = true;
 
       debug('process %s exited with code %s', process.pid, code);
-      _runningPids = without(_runningPids, process.pid);
+      _runningPids = _runningPids.filter(pid => pid !== process.pid);
 
       if (processTimedOut === true) {
         var error = new Error('Process ' + executableBaseName + ' timed out');
